@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mariadb:11.3.2-jammy
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: root_db
+      MARIADB_USER: user
+      MARIADB_PASSWORD: user
+      TZ: Europe/Bratislava
+    ports:
+      - "3306:3306"
+    expose:
+      - '3306'
+    volumes:
+      - "./mariadb_data:/var/lib/mysql"
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.1-apache
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PMA_USER: root
+      PMA_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8080:80"
+    expose:
+      - "8080"
+
+  php-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - db
+      - phpmyadmin
+    ports:
+      - "3000:80"
+    expose:
+      - "3000"
